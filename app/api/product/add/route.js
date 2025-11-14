@@ -16,13 +16,26 @@ cloudinary.config({
 
 export async function POST(request) {
     try {
+        console.log('=== Product Add API Called ===');
 
         const { userId } = getAuth(request)
+        console.log('User ID from Clerk:', userId);
+
+        if (!userId) {
+            return NextResponse.json({ 
+                success: false, 
+                message: 'Not authenticated. Please sign in.' 
+            }, { status: 401 });
+        }
 
         const isSeller = await authSeller(userId)
+        console.log('Is seller check result:', isSeller);
 
         if (!isSeller) {
-            return NextResponse.json({ success: false, message: 'not authorized ' })
+            return NextResponse.json({ 
+                success: false, 
+                message: 'Not authorized. Only sellers can add products.' 
+            }, { status: 403 });
         }
 
         const formData = await request.formData()
@@ -33,11 +46,39 @@ export async function POST(request) {
         const price = formData.get('price');
         const offerPrice = formData.get('offerPrice');
 
+        // Validate required fields
+        if (!name || !description || !category || !price || !offerPrice) {
+            return NextResponse.json({ 
+                success: false, 
+                message: 'All fields are required' 
+            }, { status: 400 });
+        }
+
+        // Validate prices
+        if (Number(price) <= 0 || Number(offerPrice) <= 0) {
+            return NextResponse.json({ 
+                success: false, 
+                message: 'Prices must be greater than 0' 
+            }, { status: 400 });
+        }
+
+        if (Number(offerPrice) > Number(price)) {
+            return NextResponse.json({ 
+                success: false, 
+                message: 'Offer price cannot be greater than regular price' 
+            }, { status: 400 });
+        }
+
         const files = formData.getAll('images');
 
         if (!files || files.length === 0) {
-            return NextResponse.json({ success: false, message: 'no files uploaded ' })
+            return NextResponse.json({ 
+                success: false, 
+                message: 'Please upload at least one product image' 
+            }, { status: 400 });
         }
+
+        console.log(`Uploading ${files.length} images to Cloudinary...`);
 
         const result = await Promise.all(
             files.map(async (file) => {
@@ -61,8 +102,10 @@ export async function POST(request) {
         )
 
         const image = result.map(result => result.secure_url)
+        console.log('Images uploaded successfully:', image.length);
 
         await connectDB()
+        
         const newProduct = await Product.create({
             userId,
             name,
@@ -72,13 +115,21 @@ export async function POST(request) {
             offerPrice: Number(offerPrice),
             image,
             date: Date.now()
-
         })
 
-        return NextResponse.json({ success: true, message: 'Product added successfully', newProduct })
+        console.log('✓ Product created successfully:', newProduct._id);
 
+        return NextResponse.json({ 
+            success: true, 
+            message: 'Product added successfully', 
+            product: newProduct 
+        }, { status: 201 });
 
     } catch (error) {
-      return  NextResponse.json({ success: false, message: error.message })
+        console.error('Product add error:', error);
+        return NextResponse.json({ 
+            success: false, 
+            message: error.message || 'Failed to add product' 
+        }, { status: 500 });
     }
 }

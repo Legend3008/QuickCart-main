@@ -3,17 +3,113 @@
 @tailwind utilities;
 
 * {
-    scroll-behavior: smooth;
+  scroll-behavior: smooth;
+}
+
+/* Apple-grade theme transition */
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    --theme-transition-duration: 0.3s;
+    --theme-transition-easing: cubic-bezier(0.22, 1, 0.36, 1);
+  }
+
+  html {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-easing);
+  }
+
+  body {
+    transition: background-color var(--theme-transition-duration) var(--theme-transition-easing),
+                color var(--theme-transition-duration) var(--theme-transition-easing);
+  }
+
+  /* Smooth transitions for all theme-aware elements */
+  * {
+    transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+    transition-duration: var(--theme-transition-duration);
+    transition-timing-function: var(--theme-transition-easing);
+  }
+
+  /* Preserve existing transitions for specific properties */
+  *[class*="transition-"] {
+    transition-property: all;
+  }
 }
 
 @layer base {
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 0 0% 9%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
+    --radius: 0.5rem;
   }
 
+  .dark {
+    --background: 0 0% 9%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 13%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 13%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 210 100% 50%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 0 0% 63%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 63% 31%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 217 33% 17%;
+    --input: 217 33% 17%;
+    --ring: 210 100% 50%;
+  }
+
+  input[type='number']::-webkit-inner-spin-button,
+  input[type='number']::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
 ::-webkit-scrollbar {
-  display: none;
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply rounded-full bg-muted-foreground/30;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-muted-foreground/50;
 }
